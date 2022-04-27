@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+  <script>
+    $(document).ready(function(){
+           getAllRoom();
+      })
+
+      function getAllRoom() {
+              console.log('get rooms')
+              $.ajax({
+                  type: "GET",
+                  url: "/api/rooms",
+                  data: {},
+                  success: function (response) {
+
+                      for (let i = 0; i < response.length; i++) {
+                          let chatRoom = response[i];
+                          console.log(chatRoom);
+                          let temp_html = `
+                            <li><a href="/rooms/${chatRoom.roomname}">${chatRoom.roomname}</a></li>
+                          `
+                          $('#roomlist').append(temp_html)
+                      }
+                  }
+              });
+          }
+
+    function create_room() {
+      let username = $('#username').val();
+      let roomname = $('#roomname').val();
+
+
+      $.ajax({
+            type: "POST",
+            url: '/api/rooms',
+            contentType: "application/json",
+            data: JSON.stringify({
+                username: username,
+                roomname: roomname
+            }),
+            success: function (response) {
+                console.log(response);
+
+                alert('방이 생성되었습니다.')
+                localStorage.setItem('wschat.roomname',roomname);
+                localStorage.setItem('wschat.username',username);
+                location.reload();
+            },
+            error:function(){
+                alert("error");
+        		}
+        })
+      }
+  </script>
+</head>
+<body>
+<div class="container">
+
+  <div>
+    <ul id="rooms" >
+    </ul>
+  </div>
+</div>
+<div>
+  <div >
+    <ul id="roomlist">
+
+    </ul>
+  </div>
+
+  <input type="text" id="username" name="userId" class="form-control" placeholder="username을 입력해주세요">
+  <input type="text" id="roomname" class="form-control" placeholder="방이름을 입력해주세요">
+  <button onclick="create_room()" class="btn btn-secondary">개설하기</button>
+</div>
+</body>
+

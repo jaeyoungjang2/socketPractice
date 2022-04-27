@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+
+<th:block th:fragment="content">
+
+  <div class="container">
+    <div class="col-6">
+      <h1>[[${roomname}]]</h1>
+    </div>
+    <div>
+      <div id="msgArea" class="col"></div>
+      <div class="col-6">
+        <div class="input-group mb-3">
+          <input type="text" id="msg" class="form-control">
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" id="button-send">전송</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6"></div>
+  </div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+</th:block>
+
+<script th:inline="javascript">
+$(document).ready(function(){
+      let roomname = [[${roomname}]];
+      let username = localStorage.getItem('wschat.username');
+
+      var sockJs = new SockJS("/stomp/chat", null, {transports: ["websocket", "xhr-streaming", "xhr-polling"]});
+      //1. SockJS를 내부에 들고있는 stomp를 내어줌
+      var stomp = Stomp.over(sockJs);
+
+
+      //2. connection이 맺어지면 실행
+      stomp.connect({}, function (){
+         console.log("STOMP Connection")
+
+         //3. send(path, header, message)로 메세지를 보낼 수 있음
+         stomp.send('/pub/chat/enter',
+            {},
+            JSON.stringify({type:'ENTER', roomname: roomname, username: username})
+         // 전송 완료
+         )
+
+
+         //4. subscribe(path, callback)으로 메세지를 받을 수 있음
+         stomp.subscribe("/sub/chat/room/" + roomname, function (chat) {
+             var content = JSON.parse(chat.body);
+
+             var username = content.username;
+             var message = content.message;
+             var str = '';
+
+             if(username == username){
+                 str = "<div class='col-6'>";
+                 str += "<div class='alert alert-secondary'>";
+                 str += "<b>" + username + " : " + message + "</b>";
+                 str += "</div></div>";
+             }
+             else{
+                 str = "<div class='col-6'>";
+                 str += "<div class='alert alert-warning'>";
+                 str += "<b>" + username + " : " + message + "</b>";
+                 str += "</div></div>";
+             }
+
+             $("#msgArea").append(str);
+         });
+
+      // connection 끝
+      });
+
+
+
+      $("#button-send").on("click", function(e){
+
+          console.log("button 눌렀어!!")
+          var msg = document.getElementById("msg");
+
+          console.log(username + ":" + msg.value);
+          stomp.send('/pub/chat/message', {}, JSON.stringify({type:'TALK', roomname: roomname, username: username, message: msg.value}));
+
+          msg.value = '';
+      // button click 끝
+      });
+  // document.ready 끝
+  })
+
+
+</script>
