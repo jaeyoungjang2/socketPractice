@@ -33,7 +33,7 @@ public class ChatRoomController {
     @ResponseBody
     public void createRoom(@RequestBody ChatRoomDto chatRoomDto,
         @AuthenticationPrincipal UserDetailsImpl userDetails) {
-
+        System.out.println("userDetails = " + userDetails.getUser().getUsername());
         chatRoomRepository.createRoom(chatRoomDto, userDetails.getUser());
     }
 
@@ -45,6 +45,7 @@ public class ChatRoomController {
 
     @GetMapping("/rooms/{roomname}")
     public String enter(@PathVariable String roomname, Model model) {
+        System.out.println("방으로 이동!!!!!!!!합시다!!!!!!1");
         model.addAttribute("roomname", roomname);
         return "room";
     }

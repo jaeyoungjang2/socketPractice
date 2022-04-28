@@ -16,7 +16,6 @@
           <input type="text" id="msg" class="form-control">
           <div class="input-group-append">
             <button class="btn btn-outline-secondary" type="button" id="button-send">전송</button>
-            <button class="btn btn-outline-secondary" type="button" id="socket-test">API호출!!</button>
           </div>
         </div>
       </div>
@@ -28,29 +27,42 @@
   <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+
 </th:block>
 
 <script th:inline="javascript">
 $(document).ready(function(){
-
-
+      if ($.cookie('token')) {
+        console.log("쿠키가 존재해서 로그인뷰로 안갑니다.")
+        $.ajaxSetup({
+            headers:{
+                'Authorization': $.cookie('token')
+            }
+        })
+      } else {
+          console.log("로그인 뷰로 보내버리기")
+          window.location.href = '/user/loginView';
+      }
 
 
       let roomname = [[${roomname}]];
-      let userId = localStorage.getItem('wschat.userId');
+      let userId = localStorage.getItem('wschat.username');
+      alert(userId)
 
       var sockJs = new SockJS("/stomp/chat", null, {transports: ["websocket", "xhr-streaming", "xhr-polling"]});
       //1. SockJS를 내부에 들고있는 stomp를 내어줌
       var stomp = Stomp.over(sockJs);
-
-
+      console.log($.cookie('token').split(' ')[1]);
+      alert($.cookie('token').split(' ')[1]);
       //2. connection이 맺어지면 실행
-      stomp.connect({}, function (){
+      stomp.connect({'token': $.cookie('token').split(' ')[1]}, function (){
          console.log("STOMP Connection")
 
          //3. send(path, header, message)로 메세지를 보낼 수 있음
          stomp.send('/pub/chat/enter',
-            {},
+            {'token': $.cookie('token').split(' ')[1]},
             JSON.stringify({type:'ENTER', roomname: roomname, userId: userId})
          // 전송 완료
          )
@@ -60,7 +72,7 @@ $(document).ready(function(){
          stomp.subscribe("/sub/chat/room/" + roomname, function (chat) {
              var content = JSON.parse(chat.body);
 
-             var userId = content.userId;
+             var userId = content.username;
              var message = content.message;
              var str = '';
 
@@ -83,17 +95,6 @@ $(document).ready(function(){
       // connection 끝
       });
 
-
-      $("#socket-test").on("click", function(e){
-
-          $.ajax({
-                  type: "GET",
-                  url: "/api/socket/api/test",
-                  data: {},
-                  success: function (response) {}
-          // button click 끝
-          });
-      })
 
 
       $("#button-send").on("click", function(e){

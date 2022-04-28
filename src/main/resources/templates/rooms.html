@@ -9,10 +9,7 @@
 
   <script>
     $(document).ready(function(){
-           // 토큰이 없으면 로그인 화면으로 보내기
-           alert($.cookie('token').split(' ')[1]);
-           // const jwtToken = $.cookie('token').split(' ')[1]
-           if ($.cookie('token')) {
+          if ($.cookie('token')) {
             console.log("쿠키가 존재해서 로그인뷰로 안갑니다.")
             $.ajaxSetup({
                 headers:{
@@ -24,50 +21,41 @@
               window.location.href = '/user/loginView';
           }
 
-          // 방 정보 받아오기
-          getAllRoom();
-
+           getAllRoom();
 
           $.ajax({
               type: "GET",
               url: "/api/user/islogin",
               data: {},
               success: function (response) {
-                  console.log("user정보 담은 response 왔어요");
-                  console.log(response);
                   let username = response;
-
-                  // socket 뚫기
-                  console.log("여긴가? 1");
                   var sockJs = new SockJS("/stomp/chat", null, {transports: ["websocket", "xhr-streaming", "xhr-polling"]});
-                  console.log("여긴가? 2");
                   //1. SockJS를 내부에 들고있는 stomp를 내어줌
                   var stomp = Stomp.over(sockJs);
-                  console.log("여긴가? 3");
-
-
+                  console.log($.cookie('token').split(' ')[1]);
+                  alert($.cookie('token').split(' ')[1]);
                   //2. connection이 맺어지면 실행
-                  stomp.connect({}, function (){
+                  stomp.connect({'token': $.cookie('token').split(' ')[1]}, function (){
                      console.log("STOMP Connection")
 
                      //4. subscribe(path, callback)으로 메세지를 받을 수 있음
                      stomp.subscribe("/sub/chat/room/" + username, function (chat) {
                          var content = JSON.parse(chat.body);
 
-                         var userId = content.userId;
+                         var userId = content.username;
                          var message = content.message;
                          var str = '';
 
                          if(userId == userId){
                              str = "<div class='col-6'>";
                              str += "<div class='alert alert-secondary'>";
-                             str += "<b>" +  " 메세지 왔어요: " + message + "</b>";
+                             str += "<b>" + " 알람이 왔어요: " + message + "</b>";
                              str += "</div></div>";
                          }
                          else{
                              str = "<div class='col-6'>";
                              str += "<div class='alert alert-warning'>";
-                             str += "<b>" + " 메세지 왔어요: " + message + "</b>";
+                             str += "<b>" + " 알람이 왔어요: " + message + "</b>";
                              str += "</div></div>";
                          }
 
@@ -78,11 +66,6 @@
                   });
               }
           });
-
-
-
-
-          // document.ready 끝
       })
 
       function getAllRoom() {
@@ -92,30 +75,30 @@
                   url: "/api/rooms",
                   data: {},
                   success: function (response) {
-
-                      for (let i = 0; i < response.length; i++) {
-                          let chatRoom = response[i];
-
-                          let temp_html = `
-                            <li><a href="/rooms/${chatRoom.roomname}">${chatRoom.roomname}</a></li>
-                          `
-                          $('#roomlist').append(temp_html)
+                      if (response.length < 10) {
+                        for (let i = 0; i < response.length; i++) {
+                            let chatRoom = response[i];
+                            console.log(chatRoom);
+                            let temp_html = `
+                              <li><a href="/rooms/${chatRoom.roomname}">${chatRoom.roomname}</a></li>
+                            `
+                            $('#roomlist').append(temp_html)
+                        }
                       }
                   }
               });
           }
 
     function create_room() {
-      let userId = $('#userId').val();
+      let username = $('#username').val();
       let roomname = $('#roomname').val();
-
 
       $.ajax({
             type: "POST",
             url: '/api/rooms',
             contentType: "application/json",
             data: JSON.stringify({
-                userId: userId,
+                username: username,
                 roomname: roomname
             }),
             success: function (response) {
@@ -123,7 +106,8 @@
 
                 alert('방이 생성되었습니다.')
                 localStorage.setItem('wschat.roomname',roomname);
-                localStorage.setItem('wschat.userId',userId);
+                localStorage.setItem('wschat.username',username);
+
                 location.reload();
             },
             error:function(){
@@ -148,7 +132,10 @@
     </ul>
   </div>
 
-  <input type="text" id="userId" name="userId" class="form-control" placeholder="userId을 입력해주세요">
+  <div id="msgArea">
+  </div>
+
+  <input type="text" id="username" name="userId" class="form-control" placeholder="username을 입력해주세요">
   <input type="text" id="roomname" class="form-control" placeholder="방이름을 입력해주세요">
   <button onclick="create_room()" class="btn btn-secondary">개설하기</button>
 </div>

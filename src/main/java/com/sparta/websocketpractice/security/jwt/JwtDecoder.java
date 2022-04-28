@@ -68,11 +68,13 @@ public class JwtDecoder {
 
         try {
             Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
+            System.out.println("어디에서 에러가 나는거지? 111");
             JWTVerifier verifier = JWT
                     .require(algorithm)
                     .build();
-
+            System.out.println("어디에서 에러가 나는거지? 222");
             jwt = verifier.verify(token);
+            System.out.println("어디에서 에러가 나는거지? 333");
         } catch (Exception e) {
             log.error(e.getMessage());
         }
