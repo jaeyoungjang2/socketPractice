@@ -1,6 +1,6 @@
 package com.sparta.websocketpractice.domain;
 
-import com.sparta.redistest.dto.ChatRoomDto;
+import com.sparta.websocketpractice.dto.ChatRoomDto;
 import java.io.Serializable;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,9 +15,9 @@ public class ChatRoom implements Serializable {
     private String roomname;
     private String username;
 
-    public ChatRoom(ChatRoomDto chatRoom) {
+    public ChatRoom(ChatRoomDto chatRoomDto, User user) {
         this.id = ROOM_SEQUENCE ++;
-        this.roomname = chatRoom.getRoomname();
-        this.username = chatRoom.getUsername();
+        this.roomname = chatRoomDto.getRoomname();
+        this.username = user.getUsername();
     }
 }

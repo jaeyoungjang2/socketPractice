@@ -2,7 +2,7 @@ package com.sparta.websocketpractice.config;
 
 // import 생략...
 
-import com.sparta.redistest.RedisSubscriber;
+import com.sparta.websocketpractice.RedisSubscriber;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;

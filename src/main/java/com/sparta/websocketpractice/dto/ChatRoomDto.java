@@ -11,5 +11,5 @@ public class ChatRoomDto implements Serializable {
     // 상대방 이름
     private String roomname;
     // 채팅 신청한 사람
-    private String username;
+    private String userId;
 }

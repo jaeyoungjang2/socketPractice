@@ -1,5 +1,4 @@
 package com.sparta.websocketpractice.config;
-// import 생략...
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -28,7 +27,6 @@ public class EmbeddedRedisConfig {
         } catch (Exception e) {
             System.out.println("에러발생 redis server 2개 실행하려고 했어요");
         }
-
     }
 
     @PreDestroy

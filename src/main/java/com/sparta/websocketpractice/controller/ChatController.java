@@ -2,11 +2,17 @@ package com.sparta.websocketpractice.controller;
 
 // import 생략...
 
-import com.sparta.redistest.dto.ChatMessageDto;
+import com.sparta.websocketpractice.domain.User;
+import com.sparta.websocketpractice.dto.ChatMessageDto;
+import com.sparta.websocketpractice.repository.UserRepository;
+import com.sparta.websocketpractice.security.UserDetailsImpl;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 @RequiredArgsConstructor
@@ -14,21 +20,20 @@ import org.springframework.stereotype.Controller;
 public class ChatController {
     private final RedisTemplate redisTemplate;
     private final ChannelTopic channelTopic;
+    private final UserRepository userRepository;
 
     /**
      * websocket "/pub/chat/enter"로 들어오는 메시징을 처리한다.
      */
     @MessageMapping("/chat/enter")
-    public void enter(ChatMessageDto chatMessageDto) {
-        String username = chatMessageDto.getUsername();
+    public void enter(ChatMessageDto chatMessageDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        Long userId = chatMessageDto.getUserId();
+        User otherUser = userRepository.findById(userId).get();
         String roomname = chatMessageDto.getRoomname();
 
-        System.out.println("chatMessageDto.getType() = " + chatMessageDto.getType());
-        System.out.println("username = " + username);
-        System.out.println("roomname = " + roomname);
-        System.out.println("입장하셨습니다.");
-
-        chatMessageDto.setMessage(String.format("%s님이 %s방에 입장하셨습니다.", username, roomname));
+//        chatMessageDto.setMessage(String.format("%s님이 %s방에 입장하셨습니다.", username, roomname));
+        chatMessageDto.setUsername(userDetails.getUsername());
         String topic = channelTopic.getTopic();
         redisTemplate.convertAndSend(topic, chatMessageDto);
     }
@@ -37,8 +42,7 @@ public class ChatController {
      * websocket "/pub/chat/message"로 들어오는 메시징을 처리한다.
      */
     @MessageMapping("/chat/message")
-    public void message(ChatMessageDto chatMessageDto) {
-        String username = chatMessageDto.getUsername();
+    public void message(ChatMessageDto chatMessageDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         String roomname = chatMessageDto.getRoomname();
 
         String topic = channelTopic.getTopic();

@@ -16,6 +16,7 @@
           <input type="text" id="msg" class="form-control">
           <div class="input-group-append">
             <button class="btn btn-outline-secondary" type="button" id="button-send">전송</button>
+            <button class="btn btn-outline-secondary" type="button" id="socket-test">API호출!!</button>
           </div>
         </div>
       </div>
@@ -31,8 +32,12 @@
 
 <script th:inline="javascript">
 $(document).ready(function(){
+
+
+
+
       let roomname = [[${roomname}]];
-      let username = localStorage.getItem('wschat.username');
+      let userId = localStorage.getItem('wschat.userId');
 
       var sockJs = new SockJS("/stomp/chat", null, {transports: ["websocket", "xhr-streaming", "xhr-polling"]});
       //1. SockJS를 내부에 들고있는 stomp를 내어줌
@@ -46,7 +51,7 @@ $(document).ready(function(){
          //3. send(path, header, message)로 메세지를 보낼 수 있음
          stomp.send('/pub/chat/enter',
             {},
-            JSON.stringify({type:'ENTER', roomname: roomname, username: username})
+            JSON.stringify({type:'ENTER', roomname: roomname, userId: userId})
          // 전송 완료
          )
 
@@ -55,20 +60,20 @@ $(document).ready(function(){
          stomp.subscribe("/sub/chat/room/" + roomname, function (chat) {
              var content = JSON.parse(chat.body);
 
-             var username = content.username;
+             var userId = content.userId;
              var message = content.message;
              var str = '';
 
-             if(username == username){
+             if(userId == userId){
                  str = "<div class='col-6'>";
                  str += "<div class='alert alert-secondary'>";
-                 str += "<b>" + username + " : " + message + "</b>";
+                 str += "<b>" + userId + " : " + message + "</b>";
                  str += "</div></div>";
              }
              else{
                  str = "<div class='col-6'>";
                  str += "<div class='alert alert-warning'>";
-                 str += "<b>" + username + " : " + message + "</b>";
+                 str += "<b>" + userId + " : " + message + "</b>";
                  str += "</div></div>";
              }
 
@@ -79,14 +84,25 @@ $(document).ready(function(){
       });
 
 
+      $("#socket-test").on("click", function(e){
+
+          $.ajax({
+                  type: "GET",
+                  url: "/api/socket/api/test",
+                  data: {},
+                  success: function (response) {}
+          // button click 끝
+          });
+      })
+
 
       $("#button-send").on("click", function(e){
 
           console.log("button 눌렀어!!")
           var msg = document.getElementById("msg");
 
-          console.log(username + ":" + msg.value);
-          stomp.send('/pub/chat/message', {}, JSON.stringify({type:'TALK', roomname: roomname, username: username, message: msg.value}));
+          console.log(userId + ":" + msg.value);
+          stomp.send('/pub/chat/message', {}, JSON.stringify({type:'TALK', roomname: roomname, userId: userId, message: msg.value}));
 
           msg.value = '';
       // button click 끝

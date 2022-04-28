@@ -1,7 +1,7 @@
 package com.sparta.websocketpractice;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.redistest.dto.ChatMessageDto;
+import com.sparta.websocketpractice.dto.ChatMessageDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
@@ -31,7 +31,12 @@ public class RedisSubscriber implements MessageListener {
             // ChatMessageDto 객채로 맵핑
             ChatMessageDto roomMessage = objectMapper.readValue(publishMessage, ChatMessageDto.class);
             // Websocket 구독자에게 채팅 메시지 Send
-            messagingTemplate.convertAndSend("/sub/chat/room/" + roomMessage.getRoomname(), roomMessage);
+
+            if (roomMessage.getType().equals("ENTER")) {
+                messagingTemplate.convertAndSend("/sub/chat/room/" + roomMessage.getUsername(), roomMessage);
+            } else {
+                messagingTemplate.convertAndSend("/sub/chat/room/" + roomMessage.getRoomname(), roomMessage);
+            }
         } catch (Exception e) {
             log.error(e.getMessage());
         }

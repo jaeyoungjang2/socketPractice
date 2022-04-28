@@ -1,8 +1,9 @@
 package com.sparta.websocketpractice.repository;
 
 
-import com.sparta.redistest.domain.ChatRoom;
-import com.sparta.redistest.dto.ChatRoomDto;
+import com.sparta.websocketpractice.domain.ChatRoom;
+import com.sparta.websocketpractice.domain.User;
+import com.sparta.websocketpractice.dto.ChatRoomDto;
 import java.util.List;
 import javax.annotation.Resource;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,9 @@ public class ChatRoomRepository {
     private HashOperations<String, Long, ChatRoom> hashOpsChatRoom;
 
     // 채팅방 생성
-    public ChatRoom createRoom(ChatRoomDto chatRoomDto) {
-        ChatRoom chatRoom = new ChatRoom(chatRoomDto);
+    public ChatRoom createRoom(ChatRoomDto chatRoomDto, User user) {
+
+        ChatRoom chatRoom = new ChatRoom(chatRoomDto, user);
         hashOpsChatRoom.put(CHAT_ROOMS, chatRoom.getId(), chatRoom);
         return chatRoom;
     }
